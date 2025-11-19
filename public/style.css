@@ -1,0 +1,29 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+input, select {
+    padding: 8px;
+    margin: 8px 0;
+}
+
+button {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+td, th {
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+}

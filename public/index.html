@@ -1,369 +1,39 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hjemmeoppgaver</title>
-  <script src="https://unpkg.com/sql.js@1.10.2/dist/sql-wasm.js"></script>
-  <style>
-    :root {
-      --bg: #0b0f14; --panel:#121821; --muted:#8aa0b6; --text:#e7eef7; --brand:#6aa9ff; --ok:#2ecc71; --warn:#ffbe55; --bad:#ff5d73;
-    }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: var(--bg); color: var(--text); }
-    header { position: sticky; top:0; z-index:10; background: linear-gradient(180deg, rgba(18,24,33,.95), rgba(18,24,33,.8)); backdrop-filter: blur(8px); border-bottom:1px solid #1e2733; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
-    h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .3px; }
-    h2 { font-size: 18px; margin: 18px 0 10px; }
-
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
-    @media (min-width: 980px) { .grid { grid-template-columns: 1.1fr 1fr; } }
-
-    .card { background: var(--panel); border: 1px solid #1e2733; border-radius: 14px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
-    .subgrid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-    input, select, textarea { width: 100%; padding: 10px 12px; background: #0e141c; color: var(--text); border: 1px solid #1f2a38; border-radius: 10px; outline: none; }
-    textarea { min-height: 68px; }
-    label { font-size: 12px; color: var(--muted); }
-
-    button { appearance: none; border: 0; background: #1a2432; color: var(--text); padding: 10px 14px; border-radius: 10px; cursor: pointer; border: 1px solid #223044; transition: .15s transform ease; }
-    button:hover { transform: translateY(-1px); }
-    .primary { background: linear-gradient(180deg, #1a4b8f, #123a71); border-color: #265795; }
-    .success { background: linear-gradient(180deg, #157347, #0f5a38); border-color: #1d7a52; }
-    .ghost { background: transparent; }
-
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; border-bottom: 1px solid #1f2a38; text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
-    .pill { display:inline-flex; align-items:center; gap:6px; padding: 4px 8px; border-radius: 999px; font-size: 12px; border:1px solid #223044; background:#0e141c; color:#b9c7d8; }
-    .pill.ok { border-color: #1f6c44; background:#0e1612; color:#aee7c6; }
-    .pill.warn { border-color: #7a551f; background:#19140c; color:#ffd79e; }
-
-    .footer { margin-top: 18px; color: var(--muted); font-size: 12px; text-align:center; }
-    .sep { height:1px; background:#1f2a38; margin:10px 0; }
-    .right { margin-left: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Ryddeapp</title>
+    <link rel="stylesheet" href="/cleaning_app/public/style.css">
 </head>
 <body>
-  <header>
-    <div class="wrap row">
-      <h1>🏠 Hjemmeoppgaver</h1>
-      <span class="pill right" id="dbStatus">Laster database…</span>
-    </div>
-  </header>
 
-  <main class="wrap">
-    <div class="grid">
-      <!-- Brukere -->
-      <section class="card">
-        <h2>Brukere</h2>
-        <div class="subgrid">
-          <div>
-            <label>Navn</label>
-            <input id="userName" placeholder="F.eks. Kari" />
-          </div>
-          <div>
-            <label>E‑post (valgfritt)</label>
-            <input id="userEmail" placeholder="kari@example.com" />
-          </div>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <button class="primary" id="addUserBtn">Legg til bruker</button>
-          <button class="ghost" id="seedBtn" title="Legg inn eksempeldata">Fyll med demo-data</button>
-        </div>
-        <div class="sep"></div>
-        <table id="usersTable">
-          <thead><tr><th>Navn</th><th>E‑post</th><th>Opprettet</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </section>
+<h1>Ryddeapp SQLite Version</h1>
 
-      <!-- Oppgaver -->
-      <section class="card">
-        <h2>Oppgaver</h2>
-        <div class="subgrid">
-          <div>
-            <label>Tittel</label>
-            <input id="taskTitle" placeholder="Ta ut søpla" />
-          </div>
-          <div>
-            <label>Opprettet av</label>
-            <select id="taskCreatedBy"></select>
-          </div>
-        </div>
-        <div class="subgrid">
-          <div>
-            <label>Beskrivelse (valgfritt)</label>
-            <textarea id="taskDesc" placeholder="Kort beskrivelse…"></textarea>
-          </div>
-          <div>
-            <label>Tildelt til</label>
-            <select id="taskAssignedTo"></select>
-          </div>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <button class="primary" id="addTaskBtn">Opprett oppgave</button>
-        </div>
-        <div class="sep"></div>
-        <table id="tasksTable">
-          <thead><tr><th>Tittel</th><th>Tildelt</th><th>Status</th><th class="right">Handling</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </section>
+<section>
+    <h3>Add Member</h3>
+    <input id="memberName" placeholder="Name">
+    <button onclick="addMember()">Add Member</button>
+</section>
 
-      <!-- Varsler -->
-      <section class="card" style="grid-column: 1 / -1;">
-        <h2>Varsler</h2>
-        <div class="row">
-          <label for="notifUser">Vis varsler for</label>
-          <select id="notifUser"></select>
-          <button id="markAllRead" class="ghost">Marker alle som lest</button>
-        </div>
-        <div class="sep"></div>
-        <table id="notifsTable">
-          <thead><tr><th>Oppgave</th><th>Melding</th><th>Tid</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </section>
-    </div>
+<section>
+    <h3>Add Task</h3>
+    <input id="taskTitle" placeholder="Task name">
+    <button onclick="addTask()">Add Task</button>
+</section>
 
-    <p class="footer">Data lagres lokalt i nettleseren via SQLite (sql.js). Du kan eksportere og importere senere via DevTools om ønskelig.</p>
-  </main>
+<section>
+    <h3>Log Task</h3>
+    <select id="memberSelect"></select>
+    <select id="taskSelect"></select>
+    <button onclick="addLog()">Add Log</button>
+</section>
 
-  <script>
-    // --- Persistens i localStorage ---
-    const LS_KEY = 'home_tasks_db_v1';
+<section>
+    <h3>Logs</h3>
+    <table id="logTable"></table>
+</section>
 
-    function toBase64(bytes){
-      let binary = ''; const len = bytes.byteLength; const arr = new Uint8Array(bytes);
-      for (let i=0; i<len; i++) binary += String.fromCharCode(arr[i]);
-      return btoa(binary);
-    }
-    function fromBase64(b64){
-      const bin = atob(b64); const len = bin.length; const bytes = new Uint8Array(len);
-      for (let i=0; i<len; i++) bytes[i] = bin.charCodeAt(i);
-      return bytes;
-    }
-
-    let SQL, db;
-
-    const schemaSQL = `
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT,
-        created_by INTEGER,
-        assigned_to INTEGER,
-        is_done INTEGER DEFAULT 0,
-        completed_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (created_by) REFERENCES users(id),
-        FOREIGN KEY (assigned_to) REFERENCES users(id)
-      );
-      CREATE TABLE IF NOT EXISTS notifications (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        task_id INTEGER,
-        message TEXT,
-        is_read INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (task_id) REFERENCES tasks(id)
-      );
-    `;
-
-    async function initDB(){
-      SQL = await initSqlJs({ locateFile: file => `https://unpkg.com/sql.js@1.10.2/dist/${file}` });
-      const saved = localStorage.getItem(LS_KEY);
-      db = saved ? new SQL.Database(fromBase64(saved)) : new SQL.Database();
-      db.exec(schemaSQL);
-      saveDB();
-      document.getElementById('dbStatus').textContent = 'Database klar';
-      refreshAll();
-    }
-
-    function saveDB(){
-      const data = db.export();
-      localStorage.setItem(LS_KEY, toBase64(data));
-    }
-
-    // --- Helper: query wrappers ---
-    function run(sql, params = {}){ db.run(sql, params); saveDB(); }
-    function select(sql, params = {}){
-      const stmt = db.prepare(sql, params); const rows = [];
-      while (stmt.step()) rows.push(stmt.getAsObject());
-      stmt.free();
-      return rows;
-    }
-
-    // --- UI helpers ---
-    function option(el, value, label){ const o=document.createElement('option'); o.value=value; o.textContent=label; el.appendChild(o); }
-
-    function loadUsers(){
-      const users = select('SELECT * FROM users ORDER BY created_at DESC');
-      const tbody = document.querySelector('#usersTable tbody');
-      tbody.innerHTML='';
-      users.forEach(u => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.email||'')}</td><td>${new Date(u.created_at).toLocaleString()}</td>`;
-        tbody.appendChild(tr);
-      });
-
-      // dropdowns
-      const selCreated = document.getElementById('taskCreatedBy');
-      const selAssigned = document.getElementById('taskAssignedTo');
-      const selNotif = document.getElementById('notifUser');
-      selCreated.innerHTML = ''; selAssigned.innerHTML=''; selNotif.innerHTML='';
-      option(selCreated, '', '— velg —');
-      option(selAssigned, '', '— velg —');
-      users.forEach(u=>{
-        option(selCreated, u.id, u.name);
-        option(selAssigned, u.id, u.name);
-        option(selNotif, u.id, u.name);
-      });
-      if (users[0]) selNotif.value = users[0].id;
-    }
-
-    function loadTasks(){
-      const rows = select(`
-        SELECT t.*, a.name AS assigned_name, c.name AS created_name
-        FROM tasks t
-        LEFT JOIN users a ON t.assigned_to=a.id
-        LEFT JOIN users c ON t.created_by=c.id
-        ORDER BY t.is_done ASC, t.created_at DESC
-      `);
-      const tbody = document.querySelector('#tasksTable tbody');
-      tbody.innerHTML='';
-      rows.forEach(t => {
-        const tr = document.createElement('tr');
-        const status = t.is_done ? `<span class="pill ok">Ferdig</span>` : `<span class="pill warn">Åpen</span>`;
-        const controls = t.is_done ? `<small>${new Date(t.completed_at).toLocaleString()}</small>` : renderCompleteControl(t.id);
-        tr.innerHTML = `
-          <td><strong>${escapeHtml(t.title)}</strong><br><small>${escapeHtml(t.description||'')}</small></td>
-          <td>${escapeHtml(t.assigned_name||'—')}</td>
-          <td>${status}</td>
-          <td style="text-align:right;">${controls}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderCompleteControl(taskId){
-      const users = select('SELECT id, name FROM users ORDER BY name');
-      const selId = `finisher-${taskId}`;
-      const opts = users.map(u=>`<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
-      return `
-        <div class="row" style="justify-content:flex-end;">
-          <select id="${selId}">${opts}</select>
-          <button class="success" onclick="completeTask(${taskId})">Marker ferdig</button>
-        </div>
-      `;
-    }
-
-    function loadNotifications(){
-      const uid = document.getElementById('notifUser').value;
-      if (!uid) return;
-      const rows = select(`
-        SELECT n.*, t.title AS task_title FROM notifications n
-        LEFT JOIN tasks t ON t.id = n.task_id
-        WHERE n.user_id = $uid
-        ORDER BY n.created_at DESC
-      `, { $uid: uid });
-      const tbody = document.querySelector('#notifsTable tbody');
-      tbody.innerHTML='';
-      rows.forEach(n => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${escapeHtml(n.task_title||'')}</td>
-          <td>${escapeHtml(n.message)}</td>
-          <td>${new Date(n.created_at).toLocaleString()}</td>
-          <td>${n.is_read ? 'Lest' : '<span class="pill warn">Ulest</span>'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function refreshAll(){ loadUsers(); loadTasks(); loadNotifications(); }
-
-    // --- Actions ---
-    document.getElementById('addUserBtn').addEventListener('click', () => {
-      const name = document.getElementById('userName').value.trim();
-      const email = document.getElementById('userEmail').value.trim() || null;
-      if (!name) return alert('Skriv inn navn');
-      try {
-        run('INSERT INTO users (name, email) VALUES ($n, $e)', { $n: name, $e: email });
-        document.getElementById('userName').value='';
-        document.getElementById('userEmail').value='';
-        refreshAll();
-      } catch (e){
-        alert('Kunne ikke legge til bruker. E-post må være unik.');
-        console.error(e);
-      }
-    });
-
-    document.getElementById('addTaskBtn').addEventListener('click', () => {
-      const title = document.getElementById('taskTitle').value.trim();
-      const desc = document.getElementById('taskDesc').value.trim() || null;
-      const created = +document.getElementById('taskCreatedBy').value || null;
-      const assigned = +document.getElementById('taskAssignedTo').value || null;
-      if (!title) return alert('Skriv inn tittel');
-      run(`INSERT INTO tasks (title, description, created_by, assigned_to) VALUES ($t, $d, $c, $a)`, { $t:title, $d:desc, $c:created, $a:assigned });
-      document.getElementById('taskTitle').value='';
-      document.getElementById('taskDesc').value='';
-      refreshAll();
-    });
-
-    document.getElementById('notifUser').addEventListener('change', loadNotifications);
-
-    document.getElementById('markAllRead').addEventListener('click', () => {
-      const uid = +document.getElementById('notifUser').value;
-      if (!uid) return;
-      run('UPDATE notifications SET is_read=1 WHERE user_id=$u', { $u: uid });
-      loadNotifications();
-    });
-
-    function completeTask(taskId){
-      const sel = document.getElementById(`finisher-${taskId}`);
-      if (!sel) return; const finisher = +sel.value;
-      // 1) Oppdater oppgave
-      run('UPDATE tasks SET is_done=1, completed_at=CURRENT_TIMESTAMP WHERE id=$id', { $id: taskId });
-      // 2) Generer varsler til alle andre
-      const users = select('SELECT id, name FROM users');
-      const task = select('SELECT title FROM tasks WHERE id=$id', { $id: taskId })[0];
-      users.filter(u => u.id !== finisher).forEach(u => {
-        const msg = `Oppgaven "${task.title}" er ferdig!`;
-        run('INSERT INTO notifications (user_id, task_id, message) VALUES ($u, $t, $m)', { $u: u.id, $t: taskId, $m: msg });
-      });
-      refreshAll();
-      alert('Oppgaven markert som ferdig og varsler sendt.');
-    }
-
-    // Demo-data
-    document.getElementById('seedBtn').addEventListener('click', () => {
-      if (!confirm('Fylle med eksempeldata? Dette legger til noen brukere og oppgaver.')) return;
-      run("INSERT INTO users (name, email) VALUES ('Ola', 'ola@example.com')");
-      run("INSERT INTO users (name, email) VALUES ('Kari', 'kari@example.com')");
-      run("INSERT INTO users (name, email) VALUES ('Nora', 'nora@example.com')");
-      const ids = select('SELECT id FROM users ORDER BY id').map(r=>r.id);
-      run("INSERT INTO tasks (title, description, created_by, assigned_to) VALUES ('Ta ut søpla','Husk å tømme begge bøtter', $c, $a)", { $c: ids[0], $a: ids[1] });
-      run("INSERT INTO tasks (title, description, created_by, assigned_to) VALUES ('Støvsug stua','Under sofaen også', $c, $a)", { $c: ids[1], $a: ids[2] });
-      refreshAll();
-    });
-
-    // Util
-    function escapeHtml(str){
-      return (str||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-    }
-
-    // Init
-    initDB();
-  </script>
+<script src="sql-wasm.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
