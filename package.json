@@ -1,0 +1,8 @@
+{
+  "name": "cleaning_app",
+  "version": "1.0.0",
+  "main": "projects/app.js",
+  "scripts": {
+    "start": "node projects/app.js"
+  }
+}

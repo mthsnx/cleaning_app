@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Board</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #tasks { margin-top: 20px; }
+    .task { padding: 10px; border: 1px solid #ccc; margin-bottom: 8px; }
+    button { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Add Task</h2>
+  <input id="title" placeholder="Title" />
+  <input id="category" placeholder="Category" />
+  <input id="points" type="number" placeholder="Points" />
+  <button onclick="addTask()">Add</button>
+
+  <h2>Tasks</h2>
+  <div id="tasks"></div>
+
+<script>
+async function loadTasks() {
+  const res = await fetch('/api/tasks');
+  const tasks = await res.json();
+  const box = document.getElementById('tasks');
+  box.innerHTML = '';
+
+  tasks.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'task';
+    div.innerHTML = `<strong>${t.Title}</strong> (${t.Category}) - ${t.Points} pts
+      <button onclick="markDone(${t.idTasks})">Done</button>`;
+    box.appendChild(div);
+  });
+}
+
+async function addTask() {
+  const title = document.getElementById('title').value;
+  const category = document.getElementById('category').value;
+  const points = document.getElementById('points').value;
+
+  await fetch('/api/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, category, points })
+  });
+
+  loadTasks();
+}
+
+async function markDone(id) {
+  await fetch(`/api/tasks/${id}/done`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: 1 })
+  });
+
+  alert('Task completed!');
+}
+
+loadTasks();
+</script>
+</body>
+</html>
