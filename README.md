@@ -2,6 +2,8 @@
 
 Simple Express + SQLite app for assigning tasks and tracking points.
 
+This repository is a school project.
+
 **Quick start (Windows PowerShell)**
 
 1. Install Node.js (v14+ recommended).
