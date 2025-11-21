@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <title>Task Board</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    #tasks { margin-top: 20px; }
-    .task { padding: 10px; border: 1px solid #ccc; margin-bottom: 8px; }
-    button { margin-left: 10px; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <h2>Add Task</h2>
-  <input id="title" placeholder="Title" />
-  <input id="category" placeholder="Category" />
-  <input id="points" type="number" placeholder="Points" />
-  <button onclick="addTask()">Add</button>
+  <div class="form-row">
+    <input id="title" placeholder="Title" />
+    <input id="category" placeholder="Category" />
+  </div>
+  <div class="form-row">
+    <input id="points" type="number" placeholder="Points" />
+    <input id="assignedName" placeholder="Assign to (name)" />
+  </div>
+  <div class="form-row">
+    <button id="addBtn" onclick="addTask()">Add</button>
+  </div>
 
   <h2>Tasks</h2>
-  <div id="tasks"></div>
+  <div id="tasks" class="tasks-grid"></div>
+
 
 <script>
 async function loadTasks() {
@@ -30,34 +33,105 @@ async function loadTasks() {
   tasks.forEach(t => {
     const div = document.createElement('div');
     div.className = 'task';
-    div.innerHTML = `<strong>${t.Title}</strong> (${t.Category}) - ${t.Points} pts
-      <button onclick="markDone(${t.idTasks})">Done</button>`;
+    div.dataset.id = t.idTasks;
+
+    const assigned = t.AssignedName ?
+      `<div class="assigned">Assigned to: <strong>${t.AssignedName}</strong></div>` :
+      `<div class="assigned">Unassigned</div>`;
+
+    const avatar = t.AssignedAvatar ? `<img src="${t.AssignedAvatar}" alt="avatar" class="avatar"/>` : '';
+
+    div.innerHTML = `
+      <div class="task-main">
+        <div class="task-info">
+          <div class="task-title">${escapeHtml(t.Title)}</div>
+          <div class="task-meta">${escapeHtml(t.Category)} · ${t.Points || 0} pts</div>
+          ${assigned}
+        </div>
+        <div class="task-actions">
+          ${avatar}
+          <button class="done-btn">Done</button>
+        </div>
+      </div>
+    `;
+
+    // attach click handler for done button
+    div.querySelector('.done-btn').addEventListener('click', () => markDone(t.idTasks, div));
+
     box.appendChild(div);
   });
+
+}
+
+// simple escape to avoid injected HTML from titles/categories
+function escapeHtml(str){
+  if (!str && str !== 0) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 async function addTask() {
   const title = document.getElementById('title').value;
   const category = document.getElementById('category').value;
-  const points = document.getElementById('points').value;
+  const points = parseInt(document.getElementById('points').value || 0, 10);
+  const assignedName = document.getElementById('assignedName').value;
 
-  await fetch('/api/tasks', {
+  const res = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, category, points })
+    body: JSON.stringify({ title, category, points, assignedName })
   });
 
-  loadTasks();
+  if (!res.ok) {
+    alert('Failed to add task');
+    return;
+  }
+
+  // reload tasks to reflect assignment and new id
+  await loadTasks();
+
+
+  // clear inputs
+  document.getElementById('title').value = '';
+  document.getElementById('category').value = '';
+  document.getElementById('points').value = '';
+  document.getElementById('assignedName').value = '';
 }
 
-async function markDone(id) {
-  await fetch(`/api/tasks/${id}/done`, {
+async function markDone(id, element) {
+  const res = await fetch(`/api/tasks/${id}/done`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId: 1 })
   });
 
-  alert('Task completed!');
+  if (!res.ok) {
+    alert('Failed to mark task done');
+    return;
+  }
+
+  // Remove the task element from the DOM so no page refresh is needed
+  if (element && element.parentNode) element.parentNode.removeChild(element);
+
+  // optionally show a small temporary message
+  showToast('Task completed');
+
+}
+
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.className = 'show';
+  setTimeout(()=> t.className = t.className.replace('show',''), 2000);
 }
 
 loadTasks();

@@ -156,6 +156,16 @@ app.post('/api/tasks/:id/done', (req, res) => {
   });
 });
 
+// Get members / leaderboard
+app.get('/api/members', (req, res) => {
+  const sql = `SELECT idmembers as id, Name, Avatar_url, COALESCE(Score,0) as Score
+               FROM members ORDER BY Score DESC, Name ASC`;
+  db.all(sql, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
 // Serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));

@@ -1,0 +1,44 @@
+:root{
+    --bg:#0b0b0b;
+    --card:#111;
+    --accent:#4CAF50;
+    --muted:#bbb;
+}
+
+body{
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background-color: var(--bg);
+    color: #fff;
+    -webkit-font-smoothing:antialiased;
+}
+
+h2{margin-top:8px}
+
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-row input{flex:1;min-width:120px;padding:10px;border-radius:6px;border:1px solid #222;background:#0f0f0f;color:#fff}
+.form-row button{padding:10px 14px;border-radius:6px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+
+.tasks-grid{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.task{background:var(--card);padding:12px;border-radius:8px;border:1px solid #222}
+.task-main{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.task-info{flex:1}
+.task-title{font-size:16px;font-weight:700}
+.task-meta{font-size:13px;color:var(--muted);margin-top:4px}
+.assigned{font-size:13px;color:var(--muted);margin-top:6px}
+.task-actions{display:flex;align-items:center;gap:8px}
+.avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #222}
+.done-btn{background:#ff6b6b;border:0;padding:8px 12px;border-radius:6px;color:#fff;cursor:pointer}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;padding:8px 14px;border-radius:20px;opacity:0;transition:opacity .3s}
+#toast.show{opacity:1}
+
+/* Responsive: on wider screens show a two-column layout */
+@media(min-width:800px){
+    .tasks-grid{flex-direction:row;flex-wrap:wrap}
+    .task{width:48%}
+}
+
+/* leaderboard removed */
