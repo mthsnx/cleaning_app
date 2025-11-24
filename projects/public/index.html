@@ -9,11 +9,25 @@
   <h2>Add Task</h2>
   <div class="form-row">
     <input id="title" placeholder="Title" />
-    <input id="category" placeholder="Category" />
+    <select id="category" placeholder="Category" />
+    <option value="rydde">Rydde</option>
+    <option value="støvsuge">Støvsuge</option>
+    <option value="vask">Vask</option>
+    <option value="vaskemaskin">Vaskemaskin</option>
+    <option value="tørketrommel">Tørketrommel</option>
+    <option value="vaske">Vaskeservice</option>
+  
+  </select>
   </div>
   <div class="form-row">
     <input id="points" type="number" placeholder="Points" />
-    <input id="assignedName" placeholder="Assign to (name)" />
+    <select id="assignedName" placeholder="Assign to (name)">
+    <option value="ingdal">ingdal</option>
+    <option value="markus">markus</option>
+    <option value="mathias">mathias</option>
+    <option value="sindre">sindre</option>
+    <option value="theo">theo</option>
+  </select>
   </div>
   <div class="form-row">
     <button id="addBtn" onclick="addTask()">Add</button>
