@@ -118,7 +118,6 @@ app.post('/api/tasks/:id/done', (req, res) => {
     const memberId = task.Assigned_To || req.body.userId || null;
 
     db.serialize(() => {
-      // insert log (use memberId if available)
       db.run(
         'INSERT INTO Logs (User_Id, Task_Id, Date_Time) VALUES (?, ?, datetime("now"))',
         [memberId, id],
@@ -128,7 +127,6 @@ app.post('/api/tasks/:id/done', (req, res) => {
       );
 
       if (memberId) {
-        // add points to member Score
         db.run(
           'UPDATE members SET Score = COALESCE(Score, 0) + ? WHERE idmembers = ?',
           [task.Points || 0, memberId],
@@ -143,7 +141,6 @@ app.post('/api/tasks/:id/done', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
 
         if (memberId) {
-          // return updated score
           db.get('SELECT Score FROM members WHERE idmembers = ?', [memberId], (err, row) => {
             if (err) return res.status(500).json({ error: err.message });
             return res.json({ success: true, memberId, score: row ? row.Score : 0 });
@@ -156,7 +153,6 @@ app.post('/api/tasks/:id/done', (req, res) => {
   });
 });
 
-// Get members / leaderboard
 app.get('/api/members', (req, res) => {
   const sql = `SELECT idmembers as id, Name, Avatar_url, COALESCE(Score,0) as Score
                FROM members ORDER BY Score DESC, Name ASC`;
@@ -166,12 +162,10 @@ app.get('/api/members', (req, res) => {
   });
 });
 
-// Update a task (edit)
 app.put('/api/tasks/:id', (req, res) => {
   const { id } = req.params;
   const { title, category, points, assignedName, assignedId } = req.body;
 
-  // helper to actually update task row
   function updateTaskRow(assignedToId) {
     db.run(
       'UPDATE Tasks SET Title = ?, Category = ?, Points = ?, Assigned_To = ? WHERE idTasks = ?',
@@ -188,7 +182,6 @@ app.put('/api/tasks/:id', (req, res) => {
   }
 
   if (assignedName) {
-    // find or create member by name
     db.get('SELECT idmembers FROM members WHERE Name = ?', [assignedName], (err, row) => {
       if (err) return res.status(500).json({ error: err.message });
       if (row) return updateTaskRow(row.idmembers);
@@ -201,11 +194,9 @@ app.put('/api/tasks/:id', (req, res) => {
     return;
   }
 
-  // no assignment changes
   updateTaskRow(null);
 });
 
-// Delete a task (no score awarded)
 app.delete('/api/tasks/:id', (req, res) => {
   const { id } = req.params;
   db.run('DELETE FROM Tasks WHERE idTasks = ?', [id], function (err) {

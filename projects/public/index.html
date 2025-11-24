@@ -22,12 +22,8 @@
   <div class="form-row">
     <input id="points" type="number" placeholder="Points" />
     <select id="assignedName" placeholder="Assign to (name)">
-    <option value="ingdal">ingdal</option>
-    <option value="markus">markus</option>
-    <option value="mathias">mathias</option>
-    <option value="sindre">sindre</option>
-    <option value="theo">theo</option>
-  </select>
+      <option value="">(Unassigned)</option>
+    </select>
   </div>
   <div class="form-row">
     <button id="addBtn" onclick="addTask()">Add</button>
@@ -78,8 +74,37 @@ async function loadTasks() {
     box.appendChild(div);
   });
 
+  }
+
+// Load members into the assignee select and then load tasks
+async function loadMembers() {
+  try {
+    const res = await fetch('/api/members');
+    if (!res.ok) return;
+    const members = await res.json();
+    const sel = document.getElementById('assignedName');
+    // clear existing and keep an unassigned option
+    sel.innerHTML = '';
+    const unopt = document.createElement('option');
+    unopt.value = '';
+    unopt.textContent = '(Unassigned)';
+    sel.appendChild(unopt);
+
+    members.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.Name;
+      o.textContent = m.Name;
+      sel.appendChild(o);
+    });
+  } catch (e) {
+    console.error('Failed to load members', e);
+  }
 }
 
+// populate members first, then tasks
+loadMembers().then(() => loadTasks());
+
+// (global task select removed — use per-card Done buttons)
 function escapeHtml(str){
   if (!str && str !== 0) return '';
   return String(str)
@@ -106,8 +131,8 @@ async function addTask() {
     alert('Failed to add task');
     return;
   }
-
-  await loadTasks();
+    await loadTasks();
+    await loadMembers();
 
 
   document.getElementById('title').value = '';
@@ -173,7 +198,8 @@ async function editTask(task, element){
 
   if(!res.ok){ alert('Failed to update task'); return; }
   showToast('Task updated');
-  await loadTasks();
+    await loadTasks();
+    await loadMembers();
 }
 </script>
 </body>
