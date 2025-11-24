@@ -4,7 +4,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 
 const app = express();
-const db = new sqlite3.Database('./database.db');
+// Use the pre-existing oppgavedata DB which contains the members and ids
+const db = new sqlite3.Database('./oppgavedata.db');
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -87,8 +88,8 @@ app.post('/api/tasks', (req, res) => {
     return;
   }
 
+  //lag members etter id
   if (assignedName) {
-    // find or create member by name
     db.get('SELECT idmembers FROM members WHERE Name = ?', [assignedName], (err, row) => {
       if (err) return res.status(500).json({ error: err.message });
       if (row) return insertTaskWithAssigned(row.idmembers);
@@ -109,7 +110,7 @@ app.post('/api/tasks', (req, res) => {
 app.post('/api/tasks/:id/done', (req, res) => {
   const { id } = req.params;
   // When a task is done: credit the assigned member (or provided userId) with the task's points,
-  // insert a log entry, and remove the task from the Tasks table.
+
 
   db.get('SELECT * FROM Tasks WHERE idTasks = ?', [id], (err, task) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -211,5 +212,5 @@ app.get('/', (req, res) => {
 });
 
 // Start server
-const PORT = 3000;
+const PORT = 4000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

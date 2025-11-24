@@ -92,8 +92,8 @@ async function loadMembers() {
 
     members.forEach(m => {
       const o = document.createElement('option');
-      o.value = m.Name;
-      o.textContent = m.Name;
+      o.value = m.id;                // uses DB idmembers as the option value
+      o.textContent = `${m.Name} (${m.Score || 0} pts)`; // shows Name plus Score
       sel.appendChild(o);
     });
   } catch (e) {
