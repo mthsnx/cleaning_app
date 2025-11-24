@@ -51,19 +51,21 @@ async function loadTasks() {
         <div class="task-actions">
           ${avatar}
           <button class="done-btn">Done</button>
+          <button class="edit-btn">Edit</button>
+          <button class="delete-btn">Delete</button>
         </div>
       </div>
     `;
 
-    // attach click handler for done button
     div.querySelector('.done-btn').addEventListener('click', () => markDone(t.idTasks, div));
+    div.querySelector('.edit-btn').addEventListener('click', () => editTask(t, div));
+    div.querySelector('.delete-btn').addEventListener('click', () => deleteTask(t.idTasks, div));
 
     box.appendChild(div);
   });
 
 }
 
-// simple escape to avoid injected HTML from titles/categories
 function escapeHtml(str){
   if (!str && str !== 0) return '';
   return String(str)
@@ -91,11 +93,9 @@ async function addTask() {
     return;
   }
 
-  // reload tasks to reflect assignment and new id
   await loadTasks();
 
 
-  // clear inputs
   document.getElementById('title').value = '';
   document.getElementById('category').value = '';
   document.getElementById('points').value = '';
@@ -114,10 +114,9 @@ async function markDone(id, element) {
     return;
   }
 
-  // Remove the task element from the DOM so no page refresh is needed
+  //trenger ikke refreshe hele listen, fjerner bare elementet
   if (element && element.parentNode) element.parentNode.removeChild(element);
 
-  // optionally show a small temporary message
   showToast('Task completed');
 
 }
@@ -135,6 +134,33 @@ function showToast(msg){
 }
 
 loadTasks();
+
+async function deleteTask(id, element){
+  if(!confirm('Delete this task?')) return;
+  const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+  if(!res.ok){ alert('Failed to delete task'); return; }
+  if (element && element.parentNode) element.parentNode.removeChild(element);
+  showToast('Task deleted');
+}
+
+async function editTask(task, element){
+  // basic prompt-based edit UI
+  const title = prompt('Title', task.Title) || task.Title;
+  const category = prompt('Category', task.Category) || task.Category;
+  const pointsStr = prompt('Points', task.Points || 0);
+  const points = parseInt(pointsStr,10) || 0;
+  const assignedName = prompt('Assign to (name)', task.AssignedName || '');
+
+  const res = await fetch(`/api/tasks/${task.idTasks}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, category, points, assignedName })
+  });
+
+  if(!res.ok){ alert('Failed to update task'); return; }
+  showToast('Task updated');
+  await loadTasks();
+}
 </script>
 </body>
 </html>

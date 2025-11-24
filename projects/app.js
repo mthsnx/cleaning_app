@@ -166,6 +166,54 @@ app.get('/api/members', (req, res) => {
   });
 });
 
+// Update a task (edit)
+app.put('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, category, points, assignedName, assignedId } = req.body;
+
+  // helper to actually update task row
+  function updateTaskRow(assignedToId) {
+    db.run(
+      'UPDATE Tasks SET Title = ?, Category = ?, Points = ?, Assigned_To = ? WHERE idTasks = ?',
+      [title, category, points || 0, assignedToId || null, id],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        return res.json({ success: true });
+      }
+    );
+  }
+
+  if (assignedId) {
+    return updateTaskRow(assignedId);
+  }
+
+  if (assignedName) {
+    // find or create member by name
+    db.get('SELECT idmembers FROM members WHERE Name = ?', [assignedName], (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (row) return updateTaskRow(row.idmembers);
+
+      db.run('INSERT INTO members (Name) VALUES (?)', [assignedName], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        updateTaskRow(this.lastID);
+      });
+    });
+    return;
+  }
+
+  // no assignment changes
+  updateTaskRow(null);
+});
+
+// Delete a task (no score awarded)
+app.delete('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  db.run('DELETE FROM Tasks WHERE idTasks = ?', [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    return res.json({ success: true });
+  });
+});
+
 // Serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));

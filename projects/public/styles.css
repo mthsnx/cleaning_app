@@ -30,6 +30,8 @@ h2{margin-top:8px}
 .task-actions{display:flex;align-items:center;gap:8px}
 .avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #222}
 .done-btn{background:#ff6b6b;border:0;padding:8px 12px;border-radius:6px;color:#fff;cursor:pointer}
+.edit-btn{background:#4a90e2;border:0;padding:8px 12px;border-radius:6px;color:#fff;cursor:pointer}
+.delete-btn{background:#666;border:0;padding:8px 12px;border-radius:6px;color:#fff;cursor:pointer}
 
 /* toast */
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;padding:8px 14px;border-radius:20px;opacity:0;transition:opacity .3s}
