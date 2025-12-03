@@ -2,237 +2,225 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Task Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            margin: 0; padding: 20px;
-        }
-
-        h1, h2 {
-            color: #333;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
-
-        .card {
-            background: white;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        input, select {
-            padding: 8px;
-            margin-top: 5px;
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        button {
-            margin-top: 10px;
-            padding: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #eee;
-        }
-    </style>
+    <title>Team Task Tracker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div class="container">
+    <header>
+        <h1>cleaning app</h1>
+    </header>
 
-    <h1>Task Dashboard</h1>
+    <main>
 
-    <!-- MEMBERS LIST -->
-    <div class="card">
-        <h2>Members</h2>
-        <table id="membersTable">
-            <tr><th>ID</th><th>Name</th><th>Avatar</th></tr>
-        </table>
-    </div>
+        <!-- MEMBERS -->
+        <section class="card">
+            <h2>Members</h2>
+            <div id="membersList" class="grid"></div>
 
-    <!-- ADD MEMBER -->
-    <div class="card">
-        <h2>Add New Member</h2>
-        <input id="memberName" placeholder="Name">
-        <input id="memberAvatar" placeholder="Avatar URL (optional)">
-        <button onclick="addMember()">Add Member</button>
-    </div>
+            <h3>Add Member</h3>
+            <form id="addMemberForm">
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="text" name="avatar_url" placeholder="Avatar URL (optional)">
+                <button type="submit">Add Member</button>
+            </form>
+        </section>
 
-    <!-- TASKS LIST -->
-    <div class="card">
-        <h2>Tasks</h2>
-        <table id="tasksTable">
-            <tr><th>ID</th><th>Title</th><th>Category</th><th>Points</th></tr>
-        </table>
-    </div>
+        <!-- TASKS -->
+        <section class="card">
+            <h2>Tasks</h2>
+            <table id="tasksTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Points</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
 
-    <!-- ADD LOG -->
-    <div class="card">
-        <h2>Add Task Log</h2>
+        <!-- LOGS -->
+        <section class="card">
+            <h2>Logs</h2>
+            <table id="logsTable">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Task</th>
+                        <th>Points</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
 
-        <label>Member</label>
-        <select id="logMember"></select>
+            <h3>Add Log Entry</h3>
+            <form id="addLogForm">
 
-        <label>Task</label>
-        <select id="logTask"></select>
+                <select name="user_id" id="memberSelect" required>
+                    <option value="">Select Member</option>
+                </select>
 
-        <label>Date & Time</label>
-        <input id="logDatetime" type="datetime-local">
+                <select name="task_id" id="taskSelect" required>
+                    <option value="">Select Task</option>
+                </select>
 
-        <button onclick="addLog()">Submit Log</button>
-    </div>
+                <input type="datetime-local" name="datetime" required>
 
-    <!-- LOG HISTORY -->
-    <div class="card">
-        <h2>Log History</h2>
-        <table id="logsTable">
-            <tr><th>ID</th><th>Member</th><th>Task</th><th>Points</th><th>Date/Time</th></tr>
-        </table>
-    </div>
+                <button type="submit">Add Log</button>
+            </form>
+        </section>
 
-</div>
+    </main>
 
 <script>
-    // Fetch Members
-    async function loadMembers() {
-        const res = await fetch('/members');
-        const data = await res.json();
-
-        console.log(data);
-        const table = document.getElementById("membersTable");
-        const select = document.getElementById("logMember");
-
-        table.innerHTML = "<tr><th>ID</th><th>Name</th><th>Avatar</th></tr>";
-        select.innerHTML = "";
-
-        data.forEach(m => {
-            table.innerHTML += `
-                <tr>
-                    <td>${m.idmember}</td>
-                    <td>${m.Name}</td>
-                    <td>${m.points}</td>
-                    <td><img src="${m.Avatar_url}" width="40"></td>
-                </tr>
-            `;
-            select.innerHTML += `<option value="${m.idmember}">${m.Name}</option>`;
+/* ==========================
+   LOAD MEMBERS
+========================== */
+function loadMembers() {
+    fetch("/members")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("membersList");
+            container.innerHTML = "";
+            data.forEach(m => {
+                container.innerHTML += `
+                    <div class="member">
+                        <img src="${m.Avatar_url || 'https://via.placeholder.com/80'}">
+                        <div>
+                            <strong>${m.Name}</strong><br>
+                            <span>${m.points} pts</span>
+                        </div>
+                    </div>
+                `;
+            });
         });
-    }
+}
 
-    // Fetch Tasks
-    async function loadTasks() {
-        const res = await fetch('/tasks');
-        const data = await res.json();
-
-        const table = document.getElementById("tasksTable");
-        const select = document.getElementById("logTask");
-
-        table.innerHTML = "<tr><th>ID</th><th>Title</th><th>Category</th><th>Points</th></tr>";
-        select.innerHTML = "";
-
-        data.forEach(t => {
-            table.innerHTML += `
-                <tr>
-                    <td>${t.idTasks}</td>
-                    <td>${t.Title}</td>
-                    <td>${t.Category}</td>
-                    <td>${t.Points}</td>
-                </tr>
-            `;
-            select.innerHTML += `<option value="${t.idTasks}">${t.Title}</option>`;
+/* ==========================
+   POPULATE MEMBER DROPDOWN
+========================== */
+function loadMemberDropdown() {
+    fetch("/members")
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("memberSelect");
+            select.innerHTML = `<option value="">Select Member</option>`;
+            data.forEach(m => {
+                select.innerHTML += `
+                    <option value="${m.idmember}">${m.Name} (${m.points} pts)</option>
+                `;
+            });
         });
-    }
+}
 
-    // Fetch Logs
-    async function loadLogs() {
-        const res = await fetch('/logs');
-        const data = await res.json();
-
-        const table = document.getElementById("logsTable");
-        table.innerHTML = "<tr><th>ID</th><th>Member</th><th>Task</th><th>Points</th><th>Date/Time</th></tr>";
-
-        data.forEach(l => {
-            table.innerHTML += `
-                <tr>
-                    <td>${l.idLogs}</td>
-                    <td>${l.Member_Name}</td>
-                    <td>${l.Task_Title}</td>
-                    <td>${l.Points}</td>
-                    <td>${l.Date_Time}</td>
-                </tr>
-            `;
+/* ==========================
+   LOAD TASKS
+========================== */
+function loadTasks() {
+    fetch("/tasks")
+        .then(res => res.json())
+        .then(data => {
+            const table = document.querySelector("#tasksTable tbody");
+            table.innerHTML = "";
+            data.forEach(t => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${t.Title}</td>
+                        <td>${t.Category}</td>
+                        <td>${t.Points}</td>
+                    </tr>`;
+            });
         });
-    }
+}
 
-    // Add Member
-    async function addMember() {
-        const name = document.getElementById("memberName").value.trim();
-        const avatar = document.getElementById("memberAvatar").value.trim();
-
-        if (!name) return alert("Name required!");
-
-        await fetch('/addMember', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, avatar_url: avatar })
+/* ==========================
+   POPULATE TASK DROPDOWN
+========================== */
+function loadTaskDropdown() {
+    fetch("/tasks")
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("taskSelect");
+            select.innerHTML = `<option value="">Select Task</option>`;
+            data.forEach(t => {
+                select.innerHTML += `
+                    <option value="${t.idTasks}">${t.Title} (${t.Points} pts)</option>
+                `;
+            });
         });
+}
 
+/* ==========================
+   LOAD LOGS
+========================== */
+function loadLogs() {
+    fetch("/logs")
+        .then(res => res.json())
+        .then(data => {
+            const table = document.querySelector("#logsTable tbody");
+            table.innerHTML = "";
+            data.forEach(l => {
+                table.innerHTML += `
+                    <tr>
+                        <td>
+                            <img src="${l.MemberAvatar || 'https://via.placeholder.com/40'}" class="avatar-sm">
+                            ${l.MemberName}
+                        </td>
+                        <td>${l.TaskTitle}</td>
+                        <td>${l.TaskPoints}</td>
+                        <td>${l.Date_Time}</td>
+                    </tr>
+                `;
+            });
+        });
+}
+
+/* ==========================
+   ADD MEMBER FORM
+========================== */
+document.getElementById("addMemberForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const formData = Object.fromEntries(new FormData(e.target));
+
+    fetch("/addMember", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+    }).then(() => {
+        e.target.reset();
         loadMembers();
-    }
+        loadMemberDropdown();
+    });
+});
 
-    // Add Log
-    async function addLog() {
-        const user_id = document.getElementById("logMember").value;
-        const task_id = document.getElementById("logTask").value;
-        const datetime = document.getElementById("logDatetime").value;
+/* ==========================
+   ADD LOG FORM
+========================== */
+document.getElementById("addLogForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const formData = Object.fromEntries(new FormData(e.target));
 
-        if (!datetime) return alert("Select date/time!");
-
-        await fetch('/addLog', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_id, task_id, datetime })
-        });
-
+    fetch("/addLog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+    }).then(() => {
+        e.target.reset();
         loadLogs();
-    }
+    });
+});
 
-    // Initial Load
-    loadMembers();
-    loadTasks();
-    loadLogs();
+/* ==========================
+   INITIAL LOAD
+========================== */
+loadMembers();
+loadTasks();
+loadLogs();
+loadMemberDropdown();
+loadTaskDropdown();
 </script>
 
 </body>

@@ -20,8 +20,8 @@ app.get('/members', (req, res) => {
     const rows = db.prepare(`
         SELECT members.idmember, Name, Avatar_url, sum(Points) as points
         FROM members
-        inner join Logs on Logs.User_Id = members.idmember
-        inner join tasks on Logs.Task_Id = tasks.idTasks group by members.idmember
+        inner join Logs on Logs.User_Id = members.idmembers
+        inner join tasks on Logs.Task_Id = tasks.idTasks group by members.idmembers
     `).all();
     res.json(rows);
 });
