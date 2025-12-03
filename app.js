@@ -18,10 +18,10 @@ app.use(express.urlencoded({ extended: false }));
 // ================================
 app.get('/members', (req, res) => {
     const rows = db.prepare(`
-        SELECT idmember, Name, Avatar_url, sum(Points) as points
+        SELECT members.idmember, Name, Avatar_url, sum(Points) as points
         FROM members
         inner join Logs on Logs.User_Id = members.idmember
-        inner join tasks on Logs.Task_Id = tasks.idTasks group by members.idmembers
+        inner join tasks on Logs.Task_Id = tasks.idTasks group by members.idmember
     `).all();
     res.json(rows);
 });
@@ -31,7 +31,7 @@ app.get('/members', (req, res) => {
 // ================================
 app.get('/tasks', (req, res) => {
     const rows = db.prepare(`
-        SELECT idTasks, Title, Category, Points, AssignedId, AssignedName, AssignedAvatar, Status
+        SELECT idTasks, Title, Category, Points
         FROM Tasks
     `).all();
     res.json(rows);
@@ -50,7 +50,7 @@ app.get('/logs', (req, res) => {
             Tasks.Points AS TaskPoints,
             Logs.Date_Time
         FROM Logs
-        JOIN members ON members.idmembers = Logs.User_Id  -- Changed from idmembers to idmembers (as likely correct)
+        JOIN members ON members.idmember = Logs.User_Id  -- Changed from idmember to idmember (as likely correct)
         JOIN Tasks ON Tasks.idTasks = Logs.Task_Id
         ORDER BY Logs.idLogs DESC
     `).all();
@@ -66,7 +66,7 @@ app.post('/addMember', (req, res) => {
     if (!name) return res.status(400).json({ error: "Name is required" });
 
     db.prepare(`
-        INSERT INTO members (Name, Avatar_url, Score, Avatar)
+        INSERT INTO members (Name, Avatar_url, points, Avatar)
         VALUES (?, ?, ?, ?)
     `).run(
         name,
